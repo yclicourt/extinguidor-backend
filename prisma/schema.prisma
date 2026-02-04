@@ -1,0 +1,231 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Cliente {
+  id        Int            @id @default(autoincrement())
+  name      String
+  lastname  String
+  genre     Genre?         @default(FEMENINO)
+  address   String
+  work_part ParteTrabajo[]
+  contracts Contrato[]
+  report    Reporte[]
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @default(now())
+}
+
+model Contrato {
+  id             Int           @id @default(autoincrement())
+  title          String
+  description    String
+  state_contract StateContract @default(PENDIENTE)
+  clientId       Int
+  client         Cliente       @relation(fields: [clientId], references: [id])
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @default(now())
+}
+
+model Checking {
+  id              Int            @id @default(autoincrement())
+  initial_hour    DateTime       @default(now())
+  location        String
+  report          Reporte?
+  status_checking StatusChecking @default(PENDIENTE)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @default(now())
+  reporteId       Int
+}
+
+model Reporte {
+  id           Int          @id @default(autoincrement())
+  title        String
+  description  String
+  initial_hour DateTime     @default(now())
+  final_hour   DateTime     @default(now())
+  checkingId   Int          @unique
+  checking     Checking     @relation(fields: [checkingId], references: [id])
+  clientId     Int
+  client       Cliente      @relation(fields: [clientId], references: [id])
+  work_type    TipoTrabajo  @default(OBRA)
+  tools        String
+  vehicleId    Int
+  vehicle      Vehiculo     @relation(fields: [vehicleId], references: [id])
+  state_report ReporteState @default(PENDIENTE)
+}
+
+model Facturacion {
+  id                 Int            @id @default(autoincrement())
+  work_parts         ParteTrabajo[]
+  routes             Ruta[]
+  facture_parts      Int
+  facture_work_parts Int
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @default(now())
+}
+
+model ParteTrabajo {
+  id          Int                @id @default(autoincrement())
+  title       String
+  description String
+  clientId    Int
+  client      Cliente            @relation(fields: [clientId], references: [id])
+  date        DateTime           @default(now())
+  address     String
+  state       EstadoParteTrabajo @default(PENDIENTE)
+  type_work   TipoTrabajo        @default(OBRA)
+  category    Categoria          @default(EXTINTORES)
+  docs        String
+  image       String
+  articuleId  Int
+  articule    Articulo           @relation(fields: [articuleId], references: [id])
+  comment     String
+  factureId   Int
+  facture     Facturacion        @relation(fields: [factureId], references: [id])
+  routeId     Int
+  route       Ruta               @relation(fields: [routeId], references: [id])
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @default(now())
+}
+
+model Ruta {
+  id        Int                @id @default(autoincrement())
+  title     String
+  in_charge String
+  userId    Int
+  users     Usuario            @relation(fields: [userId], references: [id])
+  vehicleId Int
+  vehicle   Vehiculo           @relation(fields: [vehicleId], references: [id])
+  factureId Int
+  facture   Facturacion        @relation(fields: [factureId], references: [id])
+  tools     String[]
+  date      DateTime           @default(now())
+  comments  String
+  state     EstadoParteTrabajo @default(PENDIENTE)
+  parts     ParteTrabajo[]
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @default(now())
+}
+
+
+
+model Usuario {
+  id               Int       @id @default(autoincrement())
+  name             String    @default("user name")
+  lastname         String    @default("user lastname")
+  email            String    @unique
+  phone            String    @unique
+  address          String
+  password         String
+  avatar           String?
+  status           Status    @default(INACTIVO)
+  lastLogin        DateTime  @default(now())
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @default(now())
+  role             Role[]    @default([ADMINISTRADOR])
+  resetToken       String?
+  resetTokenExpiry DateTime? @default(now())
+  rutas            Ruta[]
+}
+
+model Vehiculo {
+  id        Int          @id @default(autoincrement())
+  type      TipoVehiculo @default(MECANICO)
+  matricule String
+  rutas     Ruta[]
+  reportes  Reporte[]
+}
+
+model Material {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now())
+}
+
+model Articulo {
+  id            Int            @id @default(autoincrement())
+  title         String
+  description   String
+  parteTrabajos ParteTrabajo[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @default(now())
+}
+
+model Zona {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now())
+}
+
+enum EstadoParteTrabajo {
+  PENDIENTE
+  EN_PROGRESO
+  FINALIZADO
+}
+
+enum TipoTrabajo {
+  OBRA
+  MANTENIMIENTO
+  CORRECTIVO
+  VISITAS
+}
+
+enum Categoria {
+  EXTINTORES
+  INCENDIO
+  ROBO
+}
+
+enum Role {
+  ADMINISTRADOR
+  TRABAJADOR
+}
+
+enum Status {
+  ACTIVO
+  INACTIVO
+  OFFLINE
+}
+
+enum Genre {
+  FEMENINO
+  MASCULINO
+}
+
+enum StateContract {
+  APROBADO
+  EN_PROGRESO
+  PENDIENTE
+}
+
+enum TipoVehiculo {
+  MECANICO
+  AUTOMATICO
+}
+
+enum ReporteState {
+  APROBADO
+  EN_PROGRESO
+  PENDIENTE
+}
+
+enum StatusChecking {
+  APROBADO
+  EN_PROGRESO
+  PENDIENTE
+}
