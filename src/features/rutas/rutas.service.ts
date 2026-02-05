@@ -4,7 +4,6 @@ import { UpdateRutaDto } from './dto/update-ruta.dto';
 import { PrismaService } from 'src/common/prisma/prisma.service';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/client';
 
-
 @Injectable()
 export class RutasService {
   constructor(private readonly prisma: PrismaService) {}
@@ -19,6 +18,7 @@ export class RutasService {
         tools: createRutaDto.tools,
         comments: createRutaDto.comments || '',
         state: createRutaDto.state,
+        amount_facture_route: createRutaDto.amount_facture_route,
         facture: {
           connect: {
             id: createRutaDto.factureId,
@@ -90,6 +90,19 @@ export class RutasService {
         },
       },
     });
+  }
+
+  // Method to obtain all routes finalices
+  async getTotalRoutesFinalize() {
+    const count = await this.prisma.ruta.count({
+      where: {
+        state: 'FINALIZADO',
+      },
+    });
+    return {
+      totalFinalizadas: count,
+      mensaje: `Se han completado ${count} rutas de trabajo.`,
+    };
   }
 
   // Method to get a route

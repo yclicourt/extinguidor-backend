@@ -36,4 +36,7 @@ export class CreateRutaDto {
   @IsEnum(EstadoParteTrabajo)
   @IsNotEmpty()
   state: EstadoParteTrabajo;
+  @IsNumber()
+  @IsNotEmpty()
+  amount_facture_route: number;
 }

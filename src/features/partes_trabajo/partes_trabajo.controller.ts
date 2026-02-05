@@ -41,6 +41,17 @@ export class PartesTrabajoController {
   getAllParteTrabajoController() {
     return this.partesTrabajoService.getAllParteTrabajoItems();
   }
+  @Get('pending')
+  @ApiResponse({
+    status: 200,
+    description: 'The found record',
+    type: 'Work Part',
+  })
+  @ApiOperation({ summary: 'Get all Work Part' })
+  @ApiResponse({ status: 403, description: 'Forbidden.' })
+  getTotalParteTrabajoPendingController() {
+    return this.partesTrabajoService.getDashboardWorkOrderStats();
+  }
 
   @Get(':id')
   @ApiResponse({

@@ -1,5 +1,15 @@
-import { IsString, IsOptional, IsNumber, IsDate, IsEnum } from "class-validator";
-import { EstadoParteTrabajo, TipoTrabajo, Categoria } from "generated/prisma/enums";
+import {
+  IsString,
+  IsOptional,
+  IsNumber,
+  IsDate,
+  IsEnum,
+} from 'class-validator';
+import {
+  EstadoParteTrabajo,
+  TipoTrabajo,
+  Categoria,
+} from 'generated/prisma/enums';
 
 export class UpdatePartesTrabajoDto {
   @IsString()
@@ -44,4 +54,7 @@ export class UpdatePartesTrabajoDto {
   @IsNumber()
   @IsOptional()
   routeId?: number;
+  @IsNumber()
+  @IsOptional()
+  amount_facture_parte: number;
 }

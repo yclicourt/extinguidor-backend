@@ -54,6 +54,15 @@ export class UsersController {
     return this.usersService.getAllUserItems();
   }
 
+  @Get('count')
+  @ApiOperation({ summary: 'Get all users' })
+  @ApiResponse({ status: 403, description: 'Forbidden.' })
+  getTotalUsersActivesWorkersController() {
+    return this.usersService.getActiveWorkersCount();
+  }
+
+  
+
   @Get(':id')
   @ApiOperation({ summary: 'Get a user' })
   @ApiResponse({ status: 403, description: 'Forbidden.' })

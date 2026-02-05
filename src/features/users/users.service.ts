@@ -2,7 +2,7 @@ import { HttpException, Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from 'src/common/prisma/prisma.service';
-import { Role } from './enums/user.enum';
+import { Role } from 'generated/prisma/client';
 
 import { Status } from 'generated/prisma/client';
 
@@ -87,6 +87,25 @@ export class UsersService {
         password: true,
       },
     });
+  }
+
+  // Method to obtain all active workers
+  async getActiveWorkersCount() {
+    const count = this.prisma.usuario.count({
+      where: {
+        role: {
+          // Si el rol es una lista, debes usar el operador has para verificar si "TRABAJADOR" está incluido en esa lista
+          has: Role.TRABAJADOR,
+        },
+        status: 'ACTIVO',
+        reportes: {
+          some: {
+            state_report: 'APROBADO',
+          },
+        },
+      },
+    });
+    return count;
   }
 
   // Method to get a user by email

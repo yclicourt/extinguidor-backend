@@ -14,6 +14,7 @@ export class FacturacionService {
       data: {
         facture_parts: createFacturacionDto.facture_parts,
         facture_work_parts: createFacturacionDto.facture_work_parts,
+        facture_amount: createFacturacionDto.facture_amount,
       },
       include: {
         routes: {
@@ -62,6 +63,51 @@ export class FacturacionService {
     });
   }
 
+  // Method to obtain total of the facture
+  async getTotalFactureItems(factureId: number) {
+    // 1. Obtenemos el registro de facturación con sus partes y rutas relacionadas
+    const factureFound = await this.prisma.facturacion.findUnique({
+      where: {
+        id: factureId,
+      },
+      include: {
+        work_parts: true,
+        routes: {
+          include: {
+            parts: true,
+          },
+        },
+      },
+    });
+    if (!factureFound) throw new HttpException('Facture not found', 404);
+
+    // 2. Cálculo para Partes de Trabajo independientes o vinculados
+    const totalPartes = factureFound.work_parts
+      .filter((parte) => parte.state === 'FINALIZADO')
+      .reduce((acc, parte) => {
+        return acc + (parte.amount_facture_parte || 0);
+      }, 0);
+
+    // 3. Cálculo basado en Rutas (Agregación de sus partes)
+    const totalRutas = factureFound.routes.reduce((accRuta, ruta) => {
+      const montoRuta = ruta.parts
+        .filter((p) => p.state === 'FINALIZADO')
+        .reduce((accParte, p) => accParte + (p.amount_facture_parte || 0), 0);
+      return accRuta + montoRuta;
+    }, 0);
+
+    // 4. Actualización de los campos en el modelo Facturacion
+    return await this.prisma.facturacion.update({
+      where: {
+        id: factureId,
+      },
+      data: {
+        facture_parts: totalPartes,
+        facture_work_parts: totalRutas,
+      },
+    });
+  }
+
   // Method to update a facture
   async updateFactureItem(
     id: number,
@@ -84,6 +130,7 @@ export class FacturacionService {
       data: {
         facture_parts: updateFacturacionDto.facture_parts,
         facture_work_parts: updateFacturacionDto.facture_work_parts,
+        facture_amount: updateFacturacionDto.facture_amount,
       },
       include: {
         routes: {

@@ -60,6 +60,8 @@ model Reporte {
   client       Cliente      @relation(fields: [clientId], references: [id])
   work_type    TipoTrabajo  @default(OBRA)
   tools        String
+  userId       Int
+  user         Usuario      @relation(fields: [userId], references: [id])
   vehicleId    Int
   vehicle      Vehiculo     @relation(fields: [vehicleId], references: [id])
   state_report ReporteState @default(PENDIENTE)
@@ -71,54 +73,55 @@ model Facturacion {
   routes             Ruta[]
   facture_parts      Int
   facture_work_parts Int
+  facture_amount     Int
   createdAt          DateTime       @default(now())
   updatedAt          DateTime       @default(now())
 }
 
 model ParteTrabajo {
-  id          Int                @id @default(autoincrement())
-  title       String
-  description String
-  clientId    Int
-  client      Cliente            @relation(fields: [clientId], references: [id])
-  date        DateTime           @default(now())
-  address     String
-  state       EstadoParteTrabajo @default(PENDIENTE)
-  type_work   TipoTrabajo        @default(OBRA)
-  category    Categoria          @default(EXTINTORES)
-  docs        String
-  image       String
-  articuleId  Int
-  articule    Articulo           @relation(fields: [articuleId], references: [id])
-  comment     String
-  factureId   Int
-  facture     Facturacion        @relation(fields: [factureId], references: [id])
-  routeId     Int
-  route       Ruta               @relation(fields: [routeId], references: [id])
-  createdAt   DateTime           @default(now())
-  updatedAt   DateTime           @default(now())
+  id                   Int                @id @default(autoincrement())
+  title                String
+  description          String
+  clientId             Int
+  client               Cliente            @relation(fields: [clientId], references: [id])
+  date                 DateTime           @default(now())
+  address              String
+  state                EstadoParteTrabajo @default(PENDIENTE)
+  type_work            TipoTrabajo        @default(OBRA)
+  category             Categoria          @default(EXTINTORES)
+  docs                 String
+  image                String
+  articuleId           Int
+  articule             Articulo           @relation(fields: [articuleId], references: [id])
+  comment              String
+  amount_facture_parte Int
+  factureId            Int
+  facture              Facturacion        @relation(fields: [factureId], references: [id])
+  routeId              Int
+  route                Ruta               @relation(fields: [routeId], references: [id])
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @default(now())
 }
 
 model Ruta {
-  id        Int                @id @default(autoincrement())
-  title     String
-  in_charge String
-  userId    Int
-  users     Usuario            @relation(fields: [userId], references: [id])
-  vehicleId Int
-  vehicle   Vehiculo           @relation(fields: [vehicleId], references: [id])
-  factureId Int
-  facture   Facturacion        @relation(fields: [factureId], references: [id])
-  tools     String[]
-  date      DateTime           @default(now())
-  comments  String
-  state     EstadoParteTrabajo @default(PENDIENTE)
-  parts     ParteTrabajo[]
-  createdAt DateTime           @default(now())
-  updatedAt DateTime           @default(now())
+  id                   Int                @id @default(autoincrement())
+  title                String
+  in_charge            String
+  userId               Int
+  users                Usuario            @relation(fields: [userId], references: [id])
+  vehicleId            Int
+  vehicle              Vehiculo           @relation(fields: [vehicleId], references: [id])
+  factureId            Int
+  facture              Facturacion        @relation(fields: [factureId], references: [id])
+  tools                String[]
+  amount_facture_route Int
+  date                 DateTime           @default(now())
+  comments             String
+  state                EstadoParteTrabajo @default(PENDIENTE)
+  parts                ParteTrabajo[]
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @default(now())
 }
-
-
 
 model Usuario {
   id               Int       @id @default(autoincrement())
@@ -137,6 +140,7 @@ model Usuario {
   resetToken       String?
   resetTokenExpiry DateTime? @default(now())
   rutas            Ruta[]
+  reportes         Reporte[]
 }
 
 model Vehiculo {

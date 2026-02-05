@@ -4,7 +4,6 @@ import { UpdatePartesTrabajoDto } from './dto/update-partes_trabajo.dto';
 import { PrismaService } from 'src/common/prisma/prisma.service';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/client';
 
-
 @Injectable()
 export class PartesTrabajoService {
   constructor(private readonly prisma: PrismaService) {}
@@ -23,6 +22,7 @@ export class PartesTrabajoService {
         docs: createPartesTrabajoDto.docs ?? '',
         image: createPartesTrabajoDto.image ?? '',
         comment: createPartesTrabajoDto.comment ?? '',
+        amount_facture_parte: createPartesTrabajoDto.amount_facture_parte,
         client: {
           connect: {
             id: createPartesTrabajoDto.clientId,
@@ -88,6 +88,20 @@ export class PartesTrabajoService {
         },
       },
     });
+  }
+
+  // Method to obtain Pending Work Orders
+  async getDashboardWorkOrderStats() {
+    const [pendingExecution, unassigned] = await Promise.all([
+      this.prisma.parteTrabajo.count({ where: { state: 'PENDIENTE' } }),
+      this.prisma.parteTrabajo.count({ where: { routeId: undefined } }),
+    ]);
+
+    return {
+      pendingExecution, // Órdenes que están en ruta pero no se han hecho
+      unassigned, // Órdenes que ni siquiera tienen ruta asignada
+      totalPending: pendingExecution + unassigned, // Dato global para "Pending Work Orders"
+    };
   }
 
   // Method to get a work part

@@ -6,7 +6,11 @@ import {
   IsOptional,
   IsString,
 } from 'class-validator';
-import { Categoria, EstadoParteTrabajo, TipoTrabajo } from 'generated/prisma/enums';
+import {
+  Categoria,
+  EstadoParteTrabajo,
+  TipoTrabajo,
+} from 'generated/prisma/enums';
 
 export class CreatePartesTrabajoDto {
   @IsString()
@@ -51,4 +55,7 @@ export class CreatePartesTrabajoDto {
   @IsNumber()
   @IsNotEmpty()
   routeId: number;
+  @IsNumber()
+  @IsNotEmpty()
+  amount_facture_parte: number;
 }
