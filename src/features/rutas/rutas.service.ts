@@ -99,10 +99,7 @@ export class RutasService {
         state: 'FINALIZADO',
       },
     });
-    return {
-      totalFinalizadas: count,
-      mensaje: `Se han completado ${count} rutas de trabajo.`,
-    };
+    return count;
   }
 
   // Method to get a route

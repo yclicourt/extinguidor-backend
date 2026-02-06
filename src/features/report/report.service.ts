@@ -4,7 +4,6 @@ import { UpdateReportDto } from './dto/update-report.dto';
 import { PrismaService } from 'src/common/prisma/prisma.service';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/client';
 
-
 @Injectable()
 export class ReportService {
   constructor(private readonly prisma: PrismaService) {}
@@ -21,6 +20,11 @@ export class ReportService {
           work_type: createReportDto.workType,
           tools: createReportDto.tools,
           state_report: createReportDto.stateReport,
+          user: {
+            connect: {
+              id: createReportDto.userId,
+            },
+          },
           checking: {
             connect: {
               id: createReportDto.checkingId,

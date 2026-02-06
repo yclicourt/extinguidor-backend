@@ -3,6 +3,7 @@ import {
   IsEnum,
   IsNotEmpty,
   IsNumber,
+  IsOptional,
   IsString,
 } from 'class-validator';
 import { StatusChecking } from 'generated/prisma/enums';
@@ -18,6 +19,6 @@ export class CreateChekingDto {
   @IsNotEmpty()
   statusChecking: StatusChecking;
   @IsNumber()
-  @IsNotEmpty()
-  reporteId: number;
+  @IsOptional()
+  reporteId?: number;
 }

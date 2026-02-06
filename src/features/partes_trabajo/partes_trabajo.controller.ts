@@ -41,7 +41,7 @@ export class PartesTrabajoController {
   getAllParteTrabajoController() {
     return this.partesTrabajoService.getAllParteTrabajoItems();
   }
-  @Get('pending')
+  @Get('count-pending')
   @ApiResponse({
     status: 200,
     description: 'The found record',

@@ -96,12 +96,9 @@ export class PartesTrabajoService {
       this.prisma.parteTrabajo.count({ where: { state: 'PENDIENTE' } }),
       this.prisma.parteTrabajo.count({ where: { routeId: undefined } }),
     ]);
+    const totalPending = pendingExecution + unassigned;
 
-    return {
-      pendingExecution, // Órdenes que están en ruta pero no se han hecho
-      unassigned, // Órdenes que ni siquiera tienen ruta asignada
-      totalPending: pendingExecution + unassigned, // Dato global para "Pending Work Orders"
-    };
+    return totalPending;
   }
 
   // Method to get a work part

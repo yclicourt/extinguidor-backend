@@ -50,11 +50,11 @@ export class CreatePartesTrabajoDto {
   @IsOptional()
   comment?: string;
   @IsNumber()
-  @IsNotEmpty()
-  factureId: number;
+  @IsOptional()
+  factureId?: number;
   @IsNumber()
-  @IsNotEmpty()
-  routeId: number;
+  @IsOptional()
+  routeId?: number;
   @IsNumber()
   @IsNotEmpty()
   amount_facture_parte: number;

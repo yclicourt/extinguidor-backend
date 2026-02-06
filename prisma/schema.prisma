@@ -45,7 +45,7 @@ model Checking {
   status_checking StatusChecking @default(PENDIENTE)
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @default(now())
-  reporteId       Int
+  reporteId       Int?
 }
 
 model Reporte {
@@ -95,10 +95,10 @@ model ParteTrabajo {
   articule             Articulo           @relation(fields: [articuleId], references: [id])
   comment              String
   amount_facture_parte Int
-  factureId            Int
-  facture              Facturacion        @relation(fields: [factureId], references: [id])
-  routeId              Int
-  route                Ruta               @relation(fields: [routeId], references: [id])
+  factureId            Int?
+  facture              Facturacion?       @relation(fields: [factureId], references: [id])
+  routeId              Int?
+  route                Ruta?              @relation(fields: [routeId], references: [id])
   createdAt            DateTime           @default(now())
   updatedAt            DateTime           @default(now())
 }

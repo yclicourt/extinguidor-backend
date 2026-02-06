@@ -36,6 +36,9 @@ export class CreateReportDto {
   @IsNumber()
   @IsNotEmpty()
   checkingId: number;
+  @IsNumber()
+  @IsNotEmpty()
+  userId: number;
   @IsEnum(ReporteState)
   @IsNotEmpty()
   stateReport: ReporteState;
