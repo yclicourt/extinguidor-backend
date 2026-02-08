@@ -10,11 +10,9 @@ const prisma = new PrismaClient({
 });
 
 async function main() {
-  console.log('🌱 Seeding con reglas de negocio...');
+  console.log('🌱 Seeding 30 registros con reglas de negocio...');
 
-  /* ─────────────────────────────
-   * LIMPIEZA (DEV ONLY)
-   * ───────────────────────────── */
+  /* ───────────────── CLEAN DEV ───────────────── */
   await prisma.reporte.deleteMany();
   await prisma.checking.deleteMany();
   await prisma.ruta.deleteMany();
@@ -25,15 +23,13 @@ async function main() {
   await prisma.usuario.deleteMany();
   await prisma.cliente.deleteMany();
 
-  /* ─────────────────────────────
-   * USUARIOS
-   * ───────────────────────────── */
+  /* ───────────────── USUARIOS ───────────────── */
   const admin = await prisma.usuario.create({
     data: {
       name: 'Admin',
-      lastname: 'Extinguidor',
+      lastname: 'Sistema',
       email: 'admin@extinguidor.cl',
-      phone: '900000001',
+      phone: '900000000',
       address: 'Casa Central',
       password: 'hashed_password',
       status: 'ACTIVO',
@@ -41,133 +37,141 @@ async function main() {
     },
   });
 
-  const worker = await prisma.usuario.create({
-    data: {
-      name: 'Pedro',
-      lastname: 'Técnico',
-      email: 'pedro@extinguidor.cl',
-      phone: '900000002',
-      address: 'Zona Norte',
-      password: 'hashed_password',
-      status: 'ACTIVO',
-      role: ['TRABAJADOR'],
-    },
-  });
+  const workers = await Promise.all(
+    Array.from({ length: 3 }).map((_, i) =>
+      prisma.usuario.create({
+        data: {
+          name: `Worker${i + 1}`,
+          lastname: 'Tecnico',
+          email: `worker${i + 1}@extinguidor.cl`,
+          phone: `90000000${i + 1}`,
+          address: 'Zona Operativa',
+          password: 'hashed_password',
+          status: 'ACTIVO',
+          role: ['TRABAJADOR'],
+        },
+      }),
+    ),
+  );
 
-  /* ─────────────────────────────
-   * VEHÍCULO
-   * ───────────────────────────── */
-  const vehicle = await prisma.vehiculo.create({
-    data: {
-      type: 'MECANICO',
-      matricule: 'EXT-2024',
-    },
-  });
+  /* ───────────────── VEHÍCULOS ───────────────── */
+  const vehicles = await Promise.all(
+    ['EXT-101', 'EXT-202', 'EXT-303'].map((plate) =>
+      prisma.vehiculo.create({
+        data: {
+          type: 'MECANICO',
+          matricule: plate,
+        },
+      }),
+    ),
+  );
 
-  /* ─────────────────────────────
-   * CLIENTE (ACTIVO IMPLÍCITO)
-   * ───────────────────────────── */
-  const client = await prisma.cliente.create({
-    data: {
-      name: 'Empresa Seguridad Total',
-      lastname: 'SpA',
-      genre: 'MASCULINO',
-      address: 'Av. Prevención 456',
-    },
-  });
+  /* ───────────────── CLIENTES ───────────────── */
+  const clients = await Promise.all(
+    Array.from({ length: 5 }).map((_, i) =>
+      prisma.cliente.create({
+        data: {
+          name: `Cliente ${i + 1}`,
+          lastname: 'Empresa',
+          genre: 'MASCULINO',
+          address: `Av. Seguridad ${100 + i}`,
+        },
+      }),
+    ),
+  );
 
-  /* ─────────────────────────────
-   * ARTÍCULO
-   * ───────────────────────────── */
-  const article = await prisma.articulo.create({
-    data: {
-      title: 'Extintor PQS 6kg',
-      description: 'Extintor normado para incendios clase ABC',
-    },
-  });
+  /* ───────────────── ARTÍCULOS ───────────────── */
+  const articles = await Promise.all(
+    Array.from({ length: 5 }).map((_, i) =>
+      prisma.articulo.create({
+        data: {
+          title: `Extintor Tipo ${i + 1}`,
+          description: 'Extintor certificado',
+        },
+      }),
+    ),
+  );
 
-  /* ─────────────────────────────
-   * PARTE DE TRABAJO (FECHA FUTURA)
-   * ───────────────────────────── */
-  const futureDate = new Date();
-  futureDate.setDate(futureDate.getDate() + 2);
+  /* ───────────────── 30 PARTES / RUTAS ───────────────── */
+  for (let i = 0; i < 30; i++) {
+    const client = clients[i % clients.length];
+    const worker = workers[i % workers.length];
+    const vehicle = vehicles[i % vehicles.length];
+    const article = articles[i % articles.length];
 
-  const part = await prisma.parteTrabajo.create({
-    data: {
-      title: 'Revisión de Extintores',
-      description: 'Inspección y certificación anual',
-      clientId: client.id,
-      address: client.address,
-      date: futureDate,
-      state: 'PENDIENTE',
-      type_work: 'MANTENIMIENTO',
-      category: 'EXTINTORES',
-      docs: 'certificado.pdf',
-      image: 'revision.jpg',
-      articuleId: article.id,
-      comment: 'Trabajo programado',
-      amount_facture_parte: 60000,
-    },
-  });
+    const date = new Date();
+    date.setDate(date.getDate() + (i % 15) + 1);
 
-  /* ─────────────────────────────
-   * FACTURACIÓN
-   * ───────────────────────────── */
-  const facture = await prisma.facturacion.create({
-    data: {
-      facture_parts: 1,
-      facture_work_parts: 1,
-      facture_amount: part.amount_facture_parte,
-    },
-  });
-
-  /* ─────────────────────────────
-   * RUTA (ENCARGADO OBLIGATORIO)
-   * ───────────────────────────── */
-  const route = await prisma.ruta.create({
-    data: {
-      title: 'Ruta Industrial Día 1',
-      in_charge: `${worker.name} ${worker.lastname}`,
-      userId: worker.id,
-      vehicleId: vehicle.id,
-      factureId: facture.id,
-      tools: ['Manómetro', 'Destornillador'],
-      amount_facture_route: part.amount_facture_parte,
-      comments: 'Ruta creada desde seed',
-      state: 'PENDIENTE',
-      parts: {
-        connect: { id: part.id }, // un parte → una ruta
+    // PARTE
+    const part = await prisma.parteTrabajo.create({
+      data: {
+        title: `Parte #${i + 1}`,
+        description: 'Trabajo programado',
+        clientId: client.id,
+        address: client.address,
+        date,
+        state: 'PENDIENTE',
+        type_work: 'MANTENIMIENTO',
+        category: 'EXTINTORES',
+        docs: 'doc.pdf',
+        image: 'image.jpg',
+        articuleId: article.id,
+        comment: 'Generado por seed',
+        amount_facture_parte: 50000,
       },
-    },
-  });
+    });
 
-  /* ─────────────────────────────
-   * CHECKING
-   * ───────────────────────────── */
-  const checking = await prisma.checking.create({
-    data: {
-      location: client.address,
-      status_checking: 'EN_PROGRESO',
-    },
-  });
+    // FACTURA
+    const facture = await prisma.facturacion.create({
+      data: {
+        facture_parts: 1,
+        facture_work_parts: 1,
+        facture_amount: part.amount_facture_parte,
+      },
+    });
 
-  /* ─────────────────────────────
-   * REPORTE (1–1 con Checking)
-   * ───────────────────────────── */
-  await prisma.reporte.create({
-    data: {
-      title: 'Reporte Revisión Extintores',
-      description: 'Revisión realizada sin observaciones',
-      checkingId: checking.id,
-      clientId: client.id,
-      userId: worker.id,
-      vehicleId: vehicle.id,
-      tools: 'Herramientas certificadas',
-      state_report: 'APROBADO',
-    },
-  });
+    // RUTA
+    const route = await prisma.ruta.create({
+      data: {
+        title: `Ruta Día ${i + 1}`,
+        in_charge: `${worker.name} ${worker.lastname}`,
+        userId: worker.id,
+        vehicleId: vehicle.id,
+        factureId: facture.id,
+        tools: ['Manómetro', 'Llave'],
+        amount_facture_route: part.amount_facture_parte,
+        comments: 'Ruta generada automáticamente',
+        state: 'PENDIENTE',
+        parts: {
+          connect: { id: part.id },
+        },
+      },
+    });
 
-  console.log('✅ Seed con reglas de negocio completado');
+    // CHECKING
+    const checking = await prisma.checking.create({
+      data: {
+        location: client.address,
+        status_checking: 'EN_PROGRESO',
+      },
+    });
+
+    // REPORTE
+    await prisma.reporte.create({
+      data: {
+        title: `Reporte Parte #${i + 1}`,
+        description: 'Trabajo realizado correctamente',
+        checkingId: checking.id,
+        clientId: client.id,
+        userId: worker.id,
+        vehicleId: vehicle.id,
+        tools: 'Herramientas estándar',
+        state_report: 'APROBADO',
+      },
+    });
+  }
+
+  console.log('✅ Seed completado: 30 registros creados');
 }
 
 main()

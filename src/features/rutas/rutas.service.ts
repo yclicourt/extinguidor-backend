@@ -102,6 +102,29 @@ export class RutasService {
     return count;
   }
 
+  // Method to obtain stats to chart
+  async getRouteStadistics() {
+    // Obtenemos el inicio del mes en formato ISO
+    const startOfMonth = new Date();
+    startOfMonth.setDate(1);
+    startOfMonth.setHours(0, 0, 0, 0);
+
+    // Aqui usamos $queryRaw para optimizar mejor la consulta 
+    const stats = await this.prisma.$queryRaw`
+    SELECT 
+      EXTRACT(DAY FROM "createdAt")::text AS day,
+      COUNT(*)::int AS total_consulted,
+      COUNT(*) FILTER (WHERE state = 'FINALIZADO')::int AS total_completed
+    FROM "Ruta"
+    WHERE "createdAt" >= ${startOfMonth}
+    GROUP BY EXTRACT(DAY FROM "createdAt")
+    ORDER BY EXTRACT(DAY FROM "createdAt") ASC
+    
+    `;
+
+    return stats;
+  }
+
   // Method to get a route
   async getRouteItem(id: number) {
     const routeFounded = await this.prisma.ruta.findFirst({

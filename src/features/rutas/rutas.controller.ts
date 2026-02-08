@@ -37,6 +37,20 @@ export class RutasController {
   getAllRouteController() {
     return this.rutasService.getAllRoutesItems();
   }
+  @Get('stats')
+  @ApiResponse({
+    status: 200,
+    description: 'The found record',
+    type: 'Route',
+  })
+  @ApiOperation({ summary: 'Get all routes' })
+  @ApiResponse({ status: 403, description: 'Forbidden.' })
+  getRouteStadisticsController() {
+    return this.rutasService.getRouteStadistics();
+  }
+
+
+
   @Get('count')
   @ApiResponse({
     status: 200,

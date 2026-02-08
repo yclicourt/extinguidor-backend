@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   ParseIntPipe,
+  Query,
 } from '@nestjs/common';
 import { PartesTrabajoService } from './partes_trabajo.service';
 import { CreatePartesTrabajoDto } from './dto/create-partes_trabajo.dto';
@@ -51,6 +52,38 @@ export class PartesTrabajoController {
   @ApiResponse({ status: 403, description: 'Forbidden.' })
   getTotalParteTrabajoPendingController() {
     return this.partesTrabajoService.getDashboardWorkOrderStats();
+  }
+  @Get('listado')
+  @ApiResponse({
+    status: 200,
+    description: 'The found record',
+    type: 'Work Part',
+  })
+  @ApiOperation({ summary: 'Get all Work Part' })
+  @ApiResponse({ status: 403, description: 'Forbidden.' })
+  getParteTrabajoAssignOrUnssignController(
+    @Query('month') month: string,
+    @Query('year') year: string,
+    @Query('assigned') assigned?: string,
+    @Query('page') page: string = '1',
+    @Query('limit') limit: string = '5',
+  ) {
+    const monthInt = parseInt(month);
+    const yearInt = parseInt(year);
+    const pageInt = parseInt(page);
+    const limitInt = parseInt(limit);
+
+    // Conversión del parámetro 'assigned' a booleano
+    // Si no viene en la URL, podemos tratarlo como undefined para traer todo
+    const isAssigned =
+      assigned === 'true' ? true : assigned === 'false' ? false : undefined;
+    return this.partesTrabajoService.getAssignORUnassignedParts(
+      monthInt,
+      yearInt,
+      isAssigned,
+      pageInt,
+      limitInt,
+    );
   }
 
   @Get(':id')

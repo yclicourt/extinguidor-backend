@@ -75,19 +75,49 @@ export class PartesTrabajoService {
     });
   }
 
-  // Method to show part unassigned by month
-  getUnassignedParts(month: number, year: number) {
+  // Method to check assign o unassign works parts
+  async getAssignORUnassignedParts(
+    month: number,
+    year: number,
+    assigned?: boolean,
+    page: number = 1,
+    limit: number = 5,
+  ) {
     const initial_month = new Date(Date.UTC(year, month, 1));
     const final_month = new Date(Date.UTC(year, month + 1, 1));
-    return this.prisma.parteTrabajo.findMany({
-      where: {
-        routeId: undefined,
-        date: {
-          gte: initial_month,
-          lt: final_month,
-        },
+
+    // 1. Definimos el filtro en una variable para reusarlo
+    const whereCondition = {
+      date: {
+        gte: initial_month,
+        lt: final_month,
       },
-    });
+      routeId:
+        assigned === undefined ? undefined : assigned ? { not: null } : null,
+    };
+
+    // 2. Ejecutamos el conteo y la búsqueda en paralelo
+    const [data, totalItems] = await this.prisma.$transaction([
+      this.prisma.parteTrabajo.findMany({
+        where: whereCondition,
+        include: {
+          client: true,
+          route: { select: { in_charge: true } },
+        },
+        orderBy: { date: 'asc' },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      this.prisma.parteTrabajo.count({ where: whereCondition }),
+    ]);
+
+    // 3. Devolvemos el objeto con la metadata necesaria para el frontend
+    return {
+      data,
+      totalItems,
+      totalPages: Math.ceil(totalItems / limit),
+      currentPage: page,
+    };
   }
 
   // Method to obtain Pending Work Orders
