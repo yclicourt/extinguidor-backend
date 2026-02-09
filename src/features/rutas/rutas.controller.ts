@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   ParseIntPipe,
+  Query,
 } from '@nestjs/common';
 import { RutasService } from './rutas.service';
 import { CreateRutaDto } from './dto/create-ruta.dto';
@@ -34,8 +35,13 @@ export class RutasController {
   })
   @ApiOperation({ summary: 'Get all routes' })
   @ApiResponse({ status: 403, description: 'Forbidden.' })
-  getAllRouteController() {
-    return this.rutasService.getAllRoutesItems();
+  getAllRouteController(
+    @Query('limit') limit: string = '5',
+    @Query('skip') skip: string = '0',
+  ) {
+    const limitInt = parseInt(limit);
+    const skipInt = parseInt(skip);
+    return this.rutasService.getAllRoutesItems(limitInt, skipInt);
   }
   @Get('stats')
   @ApiResponse({
@@ -48,8 +54,6 @@ export class RutasController {
   getRouteStadisticsController() {
     return this.rutasService.getRouteStadistics();
   }
-
-
 
   @Get('count')
   @ApiResponse({

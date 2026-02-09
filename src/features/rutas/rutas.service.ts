@@ -75,8 +75,8 @@ export class RutasService {
   }
 
   // Method to get all routes
-  getAllRoutesItems() {
-    return this.prisma.ruta.findMany({
+  async getAllRoutesItems(limit: number = 5, skip: number) {
+    return await this.prisma.ruta.findMany({
       include: {
         users: {
           select: {
@@ -89,6 +89,9 @@ export class RutasService {
           },
         },
       },
+      take: limit,
+      skip: skip,
+      orderBy: { id: 'asc' },
     });
   }
 
@@ -109,7 +112,7 @@ export class RutasService {
     startOfMonth.setDate(1);
     startOfMonth.setHours(0, 0, 0, 0);
 
-    // Aqui usamos $queryRaw para optimizar mejor la consulta 
+    // Aqui usamos $queryRaw para optimizar mejor la consulta
     const stats = await this.prisma.$queryRaw`
     SELECT 
       EXTRACT(DAY FROM "createdAt")::text AS day,
