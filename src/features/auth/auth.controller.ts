@@ -44,19 +44,18 @@ export class AuthController {
     @Body() createAuthDto: CreateAuthDto,
   ) {
     try {
-      let avatarUrl: string | undefined = undefined;
+      let avatarUrl: string | undefined = 'avatar.svg';
       if (avatar) {
-        // Upload the file and get the file name
+        // 1. Si el usuario subió un archivo real
         const fileName = await this.fileUploadService.uploadFile(avatar);
-
-        // Build the full URL that will be served statically
         avatarUrl =
-          process.env.NODE_ENV === 'production' &&
-          (fileName.startsWith('http') || fileName.startsWith('https'))
-            ? fileName // Cloudinary URL
-            : `/uploads/${fileName}`; // Local file path
+          process.env.NODE_ENV === 'production' && fileName.startsWith('http')
+            ? fileName
+            : `/uploads/${fileName}`;
+      } else if (createAuthDto.avatar) {
+        // 2. Si no hay archivo pero el frontend envió un string (ej: "avatar.svg")
+        avatarUrl = createAuthDto.avatar;
       }
-
       const userData = {
         ...createAuthDto,
         avatar: avatarUrl,

@@ -102,10 +102,6 @@ export class AuthService {
             'Ya existe un registro con datos duplicados',
           );
 
-          /* // 3. Fallback: Si es un P2002 pero no identificamos el campo
-          throw new ConflictException(
-            'Conflict: Unique constraint failed on the database',
-          ); */
         }
       }
       console.error(err);

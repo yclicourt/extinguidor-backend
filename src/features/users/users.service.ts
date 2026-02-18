@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { HttpException, Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -161,8 +162,16 @@ export class UsersService {
     if (!userFound) throw new HttpException('User not found', 404);
 
     // 1. Extraer campos para que no ensucien el objeto data de Prisma
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { id: _, role, password, status, lastLogin, createdAt, updatedAt, ...restOfData } = updateUserDTO;
+    const {
+      id: _,
+      role,
+      password,
+      status,
+      lastLogin: _lastLogin,
+      createdAt: _createdAt,
+      updatedAt: _updatedAt,
+      ...restOfData
+    } = updateUserDTO;
 
     // 2. Normalizar Roles
     let rolesArray: Role[] = [];
@@ -176,6 +185,7 @@ export class UsersService {
       where: { id },
       data: {
         ...restOfData,
+        status,
         // Solo actualizamos password si tiene contenido
         ...(password && { password }),
         role: this.validateAndNormalizeRoles(rolesArray),

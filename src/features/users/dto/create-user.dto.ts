@@ -46,8 +46,6 @@ export class CreateUserDto {
     example: 'some avenie 123',
   })
   address: string;
-
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-call
   @Transform(({ value }: { value: string }) => value.trim())
   @IsString()
   @IsNotEmpty()
@@ -62,7 +60,6 @@ export class CreateUserDto {
   @IsString()
   @Matches(/^[0-9]+$/, { message: 'Phone number must contain only digits' })
   @Length(9,12,{ message: 'Phone number must be between 9 and 12 digits' })
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-call
   @Transform(({ value }: { value: string }) => value.toString())
   @ApiProperty({
     description: 'phone number user',
@@ -90,7 +87,7 @@ export class CreateUserDto {
   @IsEnum(Status)
   @ApiProperty({
     description: 'Role user',
-    example: 'ACTIVE',
+    example: 'ACTIVO',
   })
   status?: Status;
 

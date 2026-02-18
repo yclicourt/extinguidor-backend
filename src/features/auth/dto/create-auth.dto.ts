@@ -24,14 +24,14 @@ export class CreateAuthDto extends OmitType(CreateUserDto, ['avatar']) {
   @IsString()
   @IsNotEmpty()
   @MinLength(6)
-  @Transform(({ value }) => value.trim())
+  @Transform(({ value }: { value: string }) => value.trim())
   password: string;
 
   @IsNotEmpty()
   @IsString()
   @Matches(/^[0-9]+$/, { message: 'Phone number must contain only digits' })
   @Length(9, 12, { message: 'Phone number must be between 9 and 12 digits' })
-  @Transform(({ value }) => value.toString())
+  @Transform(({ value }: { value: string | number }) => value.toString())
   @ApiProperty({
     description: 'phone number user',
     example: '585857586',
@@ -45,4 +45,8 @@ export class CreateAuthDto extends OmitType(CreateUserDto, ['avatar']) {
   @IsString()
   @IsOptional()
   lastname?: string;
+
+  @IsString()
+  @IsOptional()
+  avatar?: string
 }
