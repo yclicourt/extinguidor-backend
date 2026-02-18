@@ -11,6 +11,7 @@ import {
   UseGuards,
   UploadedFile,
   UseInterceptors,
+  Query,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -29,7 +30,6 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { FileUploadService } from 'src/common/file-upload/file-upload.service';
 import { Role } from './enums/user.enum';
 import { Status } from 'generated/prisma/client';
-
 
 @ApiTags('users')
 @ApiBearerAuth()
@@ -50,8 +50,14 @@ export class UsersController {
   @Get()
   @ApiOperation({ summary: 'Get all users' })
   @ApiResponse({ status: 403, description: 'Forbidden.' })
-  getUsersController() {
-    return this.usersService.getAllUserItems();
+  getAllUsersController(
+    @Query('query') query: string,
+    @Query('page') page: string = '1',
+    @Query('limit') limit: string = '5',
+  ) {
+    const pageInt = parseInt(page);
+    const limitInt = parseInt(limit);
+    return this.usersService.getAllUserItems(pageInt, limitInt, query);
   }
 
   @Get('count')
@@ -60,8 +66,6 @@ export class UsersController {
   getTotalUsersActivesWorkersController() {
     return this.usersService.getActiveWorkersCount();
   }
-
-  
 
   @Get(':id')
   @ApiOperation({ summary: 'Get a user' })
@@ -99,7 +103,7 @@ export class UsersController {
     }),
   )
   async updateUserController(
-    @Param('id') id: number,
+    @Param('id',ParseIntPipe) id: number,
     @UploadedFile() avatar: Express.Multer.File,
     @Body() updateUserDto: UpdateUserDto,
   ) {
@@ -119,7 +123,6 @@ export class UsersController {
         ...updateUserDto,
         ...(avatarUrl && { avatar: avatarUrl }), // Solo actualiza avatar si hay uno nuevo
       };
-
       return this.usersService.updateUserItem(id, updateData);
     } catch (error) {
       console.error('Error in updateUserController:', error);

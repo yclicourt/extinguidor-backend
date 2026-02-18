@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import {
   BadRequestException,
+  ConflictException,
   HttpException,
   Injectable,
   InternalServerErrorException,
@@ -20,7 +21,7 @@ import { RegisterUserPayload } from './interfaces/register-user-payload.interfac
 import { RegisterUserAdminPayload } from './interfaces/register-user-admin-payload.interface';
 import { Role } from './enums/role.enum';
 import { Status } from 'generated/prisma/enums';
-
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/client';
 
 @Injectable()
 export class AuthService {
@@ -45,19 +46,71 @@ export class AuthService {
 
     if (usuario) throw new HttpException('user already exists', 400);
 
-    await this.usuarioService.createUserItem({
-      address,
-      name,
-      lastname,
-      email,
-      phone,
-      password: await bcryptjs.hash(password, 10),
-      avatar,
-    });
-    return {
-      address,
-      email,
-    };
+    try {
+      await this.usuarioService.createUserItem({
+        address,
+        name,
+        lastname,
+        email,
+        phone,
+        password: await bcryptjs.hash(password, 10),
+        avatar,
+      });
+      return { message: 'User created successfully' };
+    } catch (err: unknown) {
+      if (err instanceof PrismaClientKnownRequestError) {
+        if (err.code === 'P2003') {
+          throw new ConflictException('The Field dont not exist in the table');
+        }
+        if (err.code === 'P2025') {
+          throw new ConflictException('Record to delete does not exists');
+        }
+        // P2002 es el código de Prisma para "Unique constraint failed"
+        if (err.code === 'P2002') {
+
+          // 1. Intentamos obtener el target, pero con un fallback de array vacío
+          const target = err.meta?.target || [];
+
+          // 2. Obtenemos el mensaje de error completo (donde Prisma suele escribir 'Usuario_phone_key')
+          const errorMessage = err.message || '';
+
+          console.log('Campos detectados:', target);
+          console.log('Mensaje de error original:', errorMessage);
+
+          // 3. Verificamos de forma segura en AMBOS sitios (target y el string del mensaje)
+          const isPhone =
+            JSON.stringify(target).includes('phone') ||
+            errorMessage.includes('phone');
+          const isEmail =
+            JSON.stringify(target).includes('email') ||
+            errorMessage.includes('email');
+
+          if (isPhone) {
+            throw new ConflictException(
+              'El número de teléfono ya está registrado',
+            );
+          }
+
+          if (isEmail) {
+            throw new ConflictException(
+              'Este correo electrónico ya está en uso',
+            );
+          }
+
+          // Fallback controlado
+          throw new ConflictException(
+            'Ya existe un registro con datos duplicados',
+          );
+
+          /* // 3. Fallback: Si es un P2002 pero no identificamos el campo
+          throw new ConflictException(
+            'Conflict: Unique constraint failed on the database',
+          ); */
+        }
+      }
+      console.error(err);
+      throw new InternalServerErrorException('Error interno del servidor');
+    }
   }
 
   async registerUserAdmin({
@@ -78,10 +131,31 @@ export class AuthService {
         ...registerAdminData,
         password: await bcryptjs.hash(registerAdminData.password, 10),
       });
-      return new HttpException('user created succeffully', 201);
-    } catch (error) {
-      console.log(error);
-      throw new HttpException('user not created', 404);
+      return { message: 'User created successfully' };
+    } catch (err: unknown) {
+      if (err instanceof PrismaClientKnownRequestError) {
+        if (err.code === 'P2003') {
+          throw new ConflictException('The Field dont not exist in the table');
+        }
+        if (err.code === 'P2025') {
+          throw new ConflictException('Record to delete does not exists');
+        }
+        // P2002 es el código de Prisma para "Unique constraint failed"
+        if (err.code === 'P2002') {
+          const target = err.meta?.target as string[];
+
+          if (target.includes('phone')) {
+            throw new ConflictException(
+              'The phone number is already registered by another user',
+            );
+          }
+          if (target.includes('email')) {
+            throw new ConflictException('This email address is already in use');
+          }
+        }
+      }
+
+      throw new InternalServerErrorException('Error interno del servidor');
     }
   }
 

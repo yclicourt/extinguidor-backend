@@ -3,7 +3,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from 'src/common/prisma/prisma.service';
 import { Role } from 'generated/prisma/client';
-
+import { Prisma } from 'generated/prisma/client';
 import { Status } from 'generated/prisma/client';
 
 @Injectable()
@@ -81,12 +81,35 @@ export class UsersService {
   }
 
   // Method to get all users
-  getAllUserItems() {
-    return this.prisma.usuario.findMany({
-      omit: {
-        password: true,
-      },
-    });
+  async getAllUserItems(page: number = 1, limit = 5, query: string) {
+    const where: Prisma.UsuarioWhereInput = query
+      ? {
+          name: {
+            contains: query,
+            mode: 'insensitive' as Prisma.QueryMode,
+          },
+        }
+      : {};
+
+    const [data, totalItems] = await Promise.all([
+      this.prisma.usuario.findMany({
+        where,
+        omit: {
+          password: true,
+        },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      this.prisma.usuario.count({
+        where,
+      }),
+    ]);
+
+    return {
+      data,
+      totalItems,
+      totalPages: Math.ceil(totalItems / limit),
+    };
   }
 
   // Method to obtain all active workers
@@ -137,28 +160,25 @@ export class UsersService {
     const userFound = await this.getUserItem(id);
     if (!userFound) throw new HttpException('User not found', 404);
 
-    const roles =
-      updateUserDTO.role || (updateUserDTO['role[]'] as Role[] | undefined);
+    // 1. Extraer campos para que no ensucien el objeto data de Prisma
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { id: _, role, password, status, lastLogin, createdAt, updatedAt, ...restOfData } = updateUserDTO;
 
-    if (roles && !Array.isArray(updateUserDTO.role)) {
-      throw new HttpException(
-        'Role must be provided as an array (e.g. ["TRABAJADOR"])',
-        400,
-      );
+    // 2. Normalizar Roles
+    let rolesArray: Role[] = [];
+    if (Array.isArray(role)) {
+      rolesArray = role;
+    } else if (typeof role === 'string') {
+      rolesArray = [role as unknown as Role];
     }
 
     return await this.prisma.usuario.update({
-      where: {
-        id,
-      },
+      where: { id },
       data: {
-        name: updateUserDTO.name,
-        lastname: updateUserDTO.lastname,
-        email: updateUserDTO.email,
-        password: updateUserDTO.password,
-        phone: updateUserDTO.phone,
-        address: updateUserDTO.address,
-        role: this.validateAndNormalizeRoles(roles),
+        ...restOfData,
+        // Solo actualizamos password si tiene contenido
+        ...(password && { password }),
+        role: this.validateAndNormalizeRoles(rolesArray),
       },
     });
   }
