@@ -50,14 +50,26 @@ export class UsersController {
   @Get()
   @ApiOperation({ summary: 'Get all users' })
   @ApiResponse({ status: 403, description: 'Forbidden.' })
-  getAllUsersController(
+  getAllUsersController() {
+    return this.usersService.getAllUserItems();
+  }
+
+
+  @Get('pagination')
+  @ApiOperation({ summary: 'Get all users pagination' })
+  @ApiResponse({ status: 403, description: 'Forbidden.' })
+  getAllUsersPaginationController(
     @Query('query') query: string,
     @Query('page') page: string = '1',
     @Query('limit') limit: string = '5',
   ) {
     const pageInt = parseInt(page);
     const limitInt = parseInt(limit);
-    return this.usersService.getAllUserItems(pageInt, limitInt, query);
+    return this.usersService.getAllUserPaginationItems(
+      pageInt,
+      limitInt,
+      query,
+    );
   }
 
   @Get('count')
@@ -103,7 +115,7 @@ export class UsersController {
     }),
   )
   async updateUserController(
-    @Param('id',ParseIntPipe) id: number,
+    @Param('id', ParseIntPipe) id: number,
     @UploadedFile() avatar: Express.Multer.File,
     @Body() updateUserDto: UpdateUserDto,
   ) {

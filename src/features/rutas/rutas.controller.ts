@@ -8,6 +8,7 @@ import {
   Delete,
   ParseIntPipe,
   Query,
+  BadRequestException,
 } from '@nestjs/common';
 import { RutasService } from './rutas.service';
 import { CreateRutaDto } from './dto/create-ruta.dto';
@@ -65,6 +66,29 @@ export class RutasController {
   @ApiResponse({ status: 403, description: 'Forbidden.' })
   getTotalRoutesFinalizesController() {
     return this.rutasService.getTotalRoutesFinalize();
+  }
+
+  @Get('byMonth')
+  @ApiResponse({
+    status: 200,
+    description: 'The found record',
+    type: 'Route',
+  })
+  @ApiOperation({ summary: 'Get all routes' })
+  @ApiResponse({ status: 403, description: 'Forbidden.' })
+  getTotalRoutesByMonthController(
+    @Query('month') month?: string,
+    @Query('year') year?: string,
+  ) {
+    const now = new Date();
+    const monthInt = month ? parseInt(month) : now.getMonth() + 1;
+    const yearInt = year ? parseInt(year) : now.getFullYear();
+
+    // Validación básica para evitar enviar NaN al servicio
+    if (isNaN(monthInt) || isNaN(yearInt)) {
+      throw new BadRequestException('Month and Year must be valid numbers');
+    }
+    return this.rutasService.getTotalRoutesByMonthItems(monthInt, yearInt);
   }
 
   @Get(':id')

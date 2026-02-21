@@ -91,8 +91,8 @@ model ParteTrabajo {
   category             Categoria          @default(EXTINTORES)
   docs                 String
   image                String
-  articuleId           Int
-  articule             Articulo           @relation(fields: [articuleId], references: [id])
+  articuleId           Int?
+  articule             Articulo?           @relation(fields: [articuleId], references: [id])
   comment              String
   amount_facture_parte Int
   factureId            Int?

@@ -44,8 +44,8 @@ export class CreatePartesTrabajoDto {
   @IsOptional()
   image?: string;
   @IsNumber()
-  @IsNotEmpty()
-  articleId: number;
+  @IsOptional()
+  articleId?: number;
   @IsString()
   @IsOptional()
   comment?: string;

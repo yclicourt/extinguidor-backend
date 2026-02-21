@@ -83,6 +83,11 @@ export class RutasService {
             name: true,
           },
         },
+        parts: {
+          select: {
+            title: true,
+          },
+        },
         vehicle: {
           select: {
             matricule: true,
@@ -103,6 +108,24 @@ export class RutasService {
       },
     });
     return count;
+  }
+
+  // Method to obtain all routes by month
+  async getTotalRoutesByMonthItems(month: number, year: number) {
+    const start = new Date(year, month - 1, 1);
+    const end = new Date(year, month, 0);
+
+    return await this.prisma.ruta.findMany({
+      where: {
+        date: {
+          gte: start,
+          lte: end,
+        },
+      },
+      orderBy: {
+        date: 'asc',
+      },
+    });
   }
 
   // Method to obtain stats to chart

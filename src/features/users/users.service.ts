@@ -49,21 +49,6 @@ export class UsersService {
     return normalizedRoles;
   }
 
-  // Method to update user status
-  async updateUserStatus(
-    userId: number,
-    data: { status: Status; lastLogin: Date },
-  ) {
-    return await this.prisma.usuario.update({
-      where: {
-        id: userId,
-      },
-      data: {
-        status: data.status as Status | undefined,
-        lastLogin: data.lastLogin,
-      },
-    });
-  }
   // Method to create a user
   async createUserItem(data: CreateUserDto) {
     const validRoles = this.validateRoles(data.role);
@@ -81,8 +66,14 @@ export class UsersService {
     });
   }
 
-  // Method to get all users
-  async getAllUserItems(page: number = 1, limit = 5, query: string) {
+  // Metod to get all users
+
+  async getAllUserItems() {
+    return this.prisma.usuario.findMany({});
+  }
+
+  // Method to get all users by pagination
+  async getAllUserPaginationItems(page: number = 1, limit = 5, query: string) {
     const where: Prisma.UsuarioWhereInput = query
       ? {
           name: {
@@ -193,6 +184,21 @@ export class UsersService {
     });
   }
 
+  // Method to update user status
+  async updateUserStatus(
+    userId: number,
+    data: { status: Status; lastLogin: Date },
+  ) {
+    return await this.prisma.usuario.update({
+      where: {
+        id: userId,
+      },
+      data: {
+        status: data.status as Status | undefined,
+        lastLogin: data.lastLogin,
+      },
+    });
+  }
   // Method to validate and normalize roles
   private validateAndNormalizeRoles(roles: Role[] | undefined): Role[] {
     // If no role was provided, return array with USER by default

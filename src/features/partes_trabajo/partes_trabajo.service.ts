@@ -3,6 +3,7 @@ import { CreatePartesTrabajoDto } from './dto/create-partes_trabajo.dto';
 import { UpdatePartesTrabajoDto } from './dto/update-partes_trabajo.dto';
 import { PrismaService } from 'src/common/prisma/prisma.service';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/client';
+import { Prisma } from 'generated/prisma/browser';
 
 @Injectable()
 export class PartesTrabajoService {
@@ -10,41 +11,36 @@ export class PartesTrabajoService {
 
   // Method to create a work part
   createParteTrabajoItem(createPartesTrabajoDto: CreatePartesTrabajoDto) {
-    return this.prisma.parteTrabajo.create({
-      data: {
-        title: createPartesTrabajoDto.title,
-        description: createPartesTrabajoDto.description ?? '',
-        date: createPartesTrabajoDto.date,
-        address: createPartesTrabajoDto.address ?? '',
-        state: createPartesTrabajoDto.state,
-        type_work: createPartesTrabajoDto.type_work,
-        category: createPartesTrabajoDto.category,
-        docs: createPartesTrabajoDto.docs ?? '',
-        image: createPartesTrabajoDto.image ?? '',
-        comment: createPartesTrabajoDto.comment ?? '',
-        amount_facture_parte: createPartesTrabajoDto.amount_facture_parte,
-        client: {
-          connect: {
-            id: createPartesTrabajoDto.clientId,
-          },
-        },
-        facture: {
-          connect: {
-            id: createPartesTrabajoDto.factureId,
-          },
-        },
-        articule: {
-          connect: {
-            id: createPartesTrabajoDto.articleId,
-          },
-        },
-        route: {
-          connect: {
-            id: createPartesTrabajoDto.routeId,
-          },
-        },
+    const data: Prisma.ParteTrabajoCreateInput = {
+      title: createPartesTrabajoDto.title,
+      description: createPartesTrabajoDto.description ?? '',
+      date: createPartesTrabajoDto.date,
+      address: createPartesTrabajoDto.address ?? '',
+      state: createPartesTrabajoDto.state,
+      type_work: createPartesTrabajoDto.type_work,
+      category: createPartesTrabajoDto.category,
+      docs: createPartesTrabajoDto.docs ?? '',
+      image: createPartesTrabajoDto.image ?? '',
+      comment: createPartesTrabajoDto.comment ?? '',
+      amount_facture_parte: createPartesTrabajoDto.amount_facture_parte,
+      client: {
+        connect: { id: createPartesTrabajoDto.clientId },
       },
-    });
+    };
+    if (createPartesTrabajoDto.factureId) {
+      data.facture = { connect: { id: createPartesTrabajoDto.factureId } };
+    }
+
+    if (createPartesTrabajoDto.articleId) {
+      data.articule = { connect: { id: createPartesTrabajoDto.articleId } };
+    }
+
+    if (createPartesTrabajoDto.routeId) {
+      data.route = { connect: { id: createPartesTrabajoDto.routeId } };
+    }
+
+    // 3. Pasamos el objeto limpio a Prisma
+    return this.prisma.parteTrabajo.create({ data });
   }
 
   // Method to get all works parts
@@ -141,6 +137,32 @@ export class PartesTrabajoService {
     if (!workPartFound) throw new HttpException('Work Part not found', 404);
 
     return workPartFound;
+  }
+
+  // Method to part unassigned
+  // En partes-trabajo.service.ts
+  async getFindUnassigned(month: number, year: number) {
+    const start = new Date(year, month - 1, 1);
+    const end = new Date(year, month, 0);
+
+    return this.prisma.parteTrabajo.findMany({
+      where: {
+        routeId: null, // Indispensable: sin ruta
+        OR: [
+          {
+            date: {
+              gte: start,
+              lte: end,
+            },
+          },
+          // Opcional: { date: { lt: start } } // Muestra partes atrasados de meses anteriores
+        ],
+      },
+      include: { client: true },
+      orderBy: {
+        createdAt: 'desc', // Es mejor ordenar por creación para ver lo último que entró
+      },
+    });
   }
 
   // Method to update a work part

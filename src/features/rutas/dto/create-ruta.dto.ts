@@ -1,4 +1,6 @@
+import { Type } from 'class-transformer';
 import {
+  IsArray,
   IsDate,
   IsEnum,
   IsNotEmpty,
@@ -24,10 +26,12 @@ export class CreateRutaDto {
   @IsNumber()
   @IsNotEmpty()
   factureId: number;
-  @IsString()
+  @IsArray()
+  @IsString({ each: true })
   @IsNotEmpty()
   tools: string[];
   @IsDate()
+  @Type(() => Date)
   @IsNotEmpty()
   date: Date;
   @IsString()

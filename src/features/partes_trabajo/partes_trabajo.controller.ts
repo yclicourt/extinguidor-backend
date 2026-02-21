@@ -8,6 +8,7 @@ import {
   Delete,
   ParseIntPipe,
   Query,
+  BadRequestException,
 } from '@nestjs/common';
 import { PartesTrabajoService } from './partes_trabajo.service';
 import { CreatePartesTrabajoDto } from './dto/create-partes_trabajo.dto';
@@ -84,6 +85,28 @@ export class PartesTrabajoController {
       pageInt,
       limitInt,
     );
+  }
+  @Get('unassigned')
+  @ApiOperation({
+    summary: 'Obtener partes de trabajo no asignados a ninguna ruta',
+  })
+  @ApiResponse({ status: 200, description: 'Lista de partes sin ruta.' })
+  @ApiResponse({ status: 403, description: 'Forbidden.' })
+  getParteTrabajoUnssignController(
+    @Query('month') month?: string,
+    @Query('year') year?: string,
+  ) {
+    // Si no vienen parámetros, usamos el mes y año actual por defecto
+    const now = new Date();
+    const monthInt = month ? parseInt(month) : now.getMonth() + 1;
+    const yearInt = year ? parseInt(year) : now.getFullYear();
+
+    // Validación básica para evitar enviar NaN al servicio
+    if (isNaN(monthInt) || isNaN(yearInt)) {
+      throw new BadRequestException('Month and Year must be valid numbers');
+    }
+
+    return this.partesTrabajoService.getFindUnassigned(monthInt, yearInt);
   }
 
   @Get(':id')
