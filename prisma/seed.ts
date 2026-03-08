@@ -114,7 +114,7 @@ async function main() {
         type_work: 'MANTENIMIENTO',
         category: 'EXTINTORES',
         docs: 'doc.pdf',
-        image: 'image.jpg',
+        imageDoc: 'image.jpg',
         articuleId: article.id,
         comment: 'Generado por seed',
         amount_facture_parte: 50000,

@@ -1,3 +1,4 @@
+import { Type } from 'class-transformer';
 import {
   IsDate,
   IsEnum,
@@ -19,9 +20,11 @@ export class CreatePartesTrabajoDto {
   @IsString()
   @IsOptional()
   description?: string;
+  @Type(() => Number)
   @IsNumber()
   @IsNotEmpty()
   clientId: number;
+  @Type(() => Date)
   @IsDate()
   @IsNotEmpty()
   date: Date;
@@ -42,19 +45,23 @@ export class CreatePartesTrabajoDto {
   docs?: string;
   @IsString()
   @IsOptional()
-  image?: string;
+  imageDoc?: string;
+  @Type(() => Number)
   @IsNumber()
   @IsOptional()
-  articleId?: number;
+  articuleId?: number;
   @IsString()
   @IsOptional()
   comment?: string;
+  @Type(() => Number)
   @IsNumber()
   @IsOptional()
   factureId?: number;
+  @Type(() => Number)
   @IsNumber()
   @IsOptional()
   routeId?: number;
+  @Type(() => Number)
   @IsNumber()
   @IsNotEmpty()
   amount_facture_parte: number;

@@ -89,10 +89,10 @@ model ParteTrabajo {
   state                EstadoParteTrabajo @default(PENDIENTE)
   type_work            TipoTrabajo        @default(OBRA)
   category             Categoria          @default(EXTINTORES)
-  docs                 String
-  image                String
+  docs                 String?
+  imageDoc             String?
   articuleId           Int?
-  articule             Articulo?           @relation(fields: [articuleId], references: [id])
+  articule             Articulo?          @relation(fields: [articuleId], references: [id])
   comment              String
   amount_facture_parte Int
   factureId            Int?

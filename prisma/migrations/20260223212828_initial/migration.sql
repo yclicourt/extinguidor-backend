@@ -62,7 +62,7 @@ CREATE TABLE "Checking" (
     "status_checking" "StatusChecking" NOT NULL DEFAULT 'PENDIENTE',
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "reporteId" INTEGER NOT NULL,
+    "reporteId" INTEGER,
 
     CONSTRAINT "Checking_pkey" PRIMARY KEY ("id")
 );
@@ -78,6 +78,7 @@ CREATE TABLE "Reporte" (
     "clientId" INTEGER NOT NULL,
     "work_type" "TipoTrabajo" NOT NULL DEFAULT 'OBRA',
     "tools" TEXT NOT NULL,
+    "userId" INTEGER NOT NULL,
     "vehicleId" INTEGER NOT NULL,
     "state_report" "ReporteState" NOT NULL DEFAULT 'PENDIENTE',
 
@@ -89,6 +90,7 @@ CREATE TABLE "Facturacion" (
     "id" SERIAL NOT NULL,
     "facture_parts" INTEGER NOT NULL,
     "facture_work_parts" INTEGER NOT NULL,
+    "facture_amount" INTEGER NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
@@ -106,12 +108,13 @@ CREATE TABLE "ParteTrabajo" (
     "state" "EstadoParteTrabajo" NOT NULL DEFAULT 'PENDIENTE',
     "type_work" "TipoTrabajo" NOT NULL DEFAULT 'OBRA',
     "category" "Categoria" NOT NULL DEFAULT 'EXTINTORES',
-    "docs" TEXT NOT NULL,
-    "image" TEXT NOT NULL,
-    "articuleId" INTEGER NOT NULL,
+    "docs" TEXT,
+    "imageDoc" TEXT,
+    "articuleId" INTEGER,
     "comment" TEXT NOT NULL,
-    "factureId" INTEGER NOT NULL,
-    "routeId" INTEGER NOT NULL,
+    "amount_facture_parte" INTEGER NOT NULL,
+    "factureId" INTEGER,
+    "routeId" INTEGER,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
@@ -127,6 +130,7 @@ CREATE TABLE "Ruta" (
     "vehicleId" INTEGER NOT NULL,
     "factureId" INTEGER NOT NULL,
     "tools" TEXT[],
+    "amount_facture_route" INTEGER NOT NULL,
     "date" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "comments" TEXT NOT NULL,
     "state" "EstadoParteTrabajo" NOT NULL DEFAULT 'PENDIENTE',
@@ -218,19 +222,22 @@ ALTER TABLE "Reporte" ADD CONSTRAINT "Reporte_checkingId_fkey" FOREIGN KEY ("che
 ALTER TABLE "Reporte" ADD CONSTRAINT "Reporte_clientId_fkey" FOREIGN KEY ("clientId") REFERENCES "Cliente"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "Reporte" ADD CONSTRAINT "Reporte_userId_fkey" FOREIGN KEY ("userId") REFERENCES "Usuario"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "Reporte" ADD CONSTRAINT "Reporte_vehicleId_fkey" FOREIGN KEY ("vehicleId") REFERENCES "Vehiculo"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "ParteTrabajo" ADD CONSTRAINT "ParteTrabajo_clientId_fkey" FOREIGN KEY ("clientId") REFERENCES "Cliente"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "ParteTrabajo" ADD CONSTRAINT "ParteTrabajo_articuleId_fkey" FOREIGN KEY ("articuleId") REFERENCES "Articulo"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "ParteTrabajo" ADD CONSTRAINT "ParteTrabajo_articuleId_fkey" FOREIGN KEY ("articuleId") REFERENCES "Articulo"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "ParteTrabajo" ADD CONSTRAINT "ParteTrabajo_factureId_fkey" FOREIGN KEY ("factureId") REFERENCES "Facturacion"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "ParteTrabajo" ADD CONSTRAINT "ParteTrabajo_factureId_fkey" FOREIGN KEY ("factureId") REFERENCES "Facturacion"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "ParteTrabajo" ADD CONSTRAINT "ParteTrabajo_routeId_fkey" FOREIGN KEY ("routeId") REFERENCES "Ruta"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "ParteTrabajo" ADD CONSTRAINT "ParteTrabajo_routeId_fkey" FOREIGN KEY ("routeId") REFERENCES "Ruta"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Ruta" ADD CONSTRAINT "Ruta_userId_fkey" FOREIGN KEY ("userId") REFERENCES "Usuario"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

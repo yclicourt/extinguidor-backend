@@ -6,6 +6,7 @@ import * as express from 'express';
 import { join } from 'path';
 import { ValidationPipe } from '@nestjs/common';
 import { config } from './config/swagger.config';
+import * as bodyParser from 'body-parser'
 
 async function bootstrap() {
   // Constant to handle different origins
@@ -48,6 +49,15 @@ async function bootstrap() {
 
   // Serve static files
   app.use('/api/v1/uploads', express.static(join(process.cwd(), 'uploads')));
+
+  // Handle size to body
+  app.use(bodyParser.json({
+    limit:'50mb'
+  }))
+  app.use(bodyParser.urlencoded({
+    limit:'50mb',
+    extended:true
+  }))
 
   // Swagger
   const documentFactory = () => SwaggerModule.createDocument(app, config);

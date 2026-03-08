@@ -9,27 +9,103 @@ import {
   ParseIntPipe,
   Query,
   BadRequestException,
+  UseInterceptors,
+  UploadedFiles,
 } from '@nestjs/common';
 import { PartesTrabajoService } from './partes_trabajo.service';
 import { CreatePartesTrabajoDto } from './dto/create-partes_trabajo.dto';
 import { UpdatePartesTrabajoDto } from './dto/update-partes_trabajo.dto';
 import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { FileFieldsInterceptor } from '@nestjs/platform-express';
+import { FileUploadService } from 'src/common/file-upload/file-upload.service';
 
 @ApiTags('partes-trabajo')
 @Controller('partes-trabajo')
 export class PartesTrabajoController {
-  constructor(private readonly partesTrabajoService: PartesTrabajoService) {}
+  constructor(
+    private readonly partesTrabajoService: PartesTrabajoService,
+    private readonly fileUploadService: FileUploadService,
+  ) {}
 
   @Post()
   @ApiOperation({ summary: 'Create work part' })
   @ApiResponse({ status: 403, description: 'Forbidden.' })
   @ApiBody({ type: CreatePartesTrabajoDto })
-  createParteTrabajoController(
+  @UseInterceptors(
+    FileFieldsInterceptor(
+      [
+        { name: 'imageDoc', maxCount: 1 },
+        { name: 'docs', maxCount: 1 },
+      ],
+      {
+        limits: {
+          fileSize: 1024 * 1024 * 20,
+        },
+        fileFilter: (req, file, cb) => {
+          if (file.fieldname === 'imageDoc') {
+            if (!file.originalname.match(/\.(jpg|jpeg|png|gif|webp)$/)) {
+              return cb(
+                new Error('Only image files are allowed for imageDoc'),
+                false,
+              );
+            }
+          }
+          if (file.fieldname === 'docs') {
+            if (!file.originalname.match(/\.(pdf|docx|doc)$/)) {
+              return cb(
+                new Error('Only PDF or Word files are allowed for docs'),
+                false,
+              );
+            }
+          }
+          cb(null, true);
+        },
+      },
+    ),
+  )
+  async createParteTrabajoController(
+    @UploadedFiles()
+    files: { imageDoc?: Express.Multer.File[]; docs?: Express.Multer.File[] },
     @Body() createPartesTrabajoDto: CreatePartesTrabajoDto,
   ) {
-    return this.partesTrabajoService.createParteTrabajoItem(
-      createPartesTrabajoDto,
-    );
+    try {
+      // 1. Manejo de la Imagen
+      const imageFile = files.imageDoc?.[0];
+      let imageUrl = createPartesTrabajoDto.imageDoc || 'unknown.png';
+
+      if (imageFile) {
+        const fileName = await this.fileUploadService.uploadFile(imageFile);
+        imageUrl =
+          process.env.NODE_ENV === 'production' && fileName.startsWith('http')
+            ? fileName
+            : `/uploads/${fileName}`;
+      }
+
+      // 2. Manejo del Documento (PDF/Docx)
+      const docFile = files.docs?.[0];
+      let docUrl = createPartesTrabajoDto.docs || '';
+
+      if (docFile) {
+        const docFileName = await this.fileUploadService.uploadFile(docFile);
+        docUrl =
+          process.env.NODE_ENV === 'production' &&
+          docFileName.startsWith('http')
+            ? docFileName
+            : `/uploads/${docFileName}`;
+      }
+
+      // 3. Unir todo para el servicio
+      const parteTrabajoData = {
+        ...createPartesTrabajoDto,
+        imageDoc: imageUrl,
+        docs: docUrl,
+      };
+
+      return this.partesTrabajoService.createParteTrabajoItem(parteTrabajoData);
+    } catch (error) {
+      console.error('Error creating Work Part', error);
+      throw error; // Es mejor relanzar el error para que Nest envíe un 500 al cliente
+    }
   }
 
   @Get()
@@ -144,14 +220,14 @@ export class PartesTrabajoController {
     return this.partesTrabajoService.asignPartsToRoute(routeId, partIds);
   }
 
-  @Patch('calendar')
+  @Patch(':id/assign/:routeId')
   @ApiOperation({ summary: 'assign a part to route from calendar' })
   @ApiResponse({ status: 403, description: 'Forbidden.' })
   assignPartToRouteController(
+    @Param('id', ParseIntPipe) id: number,
     @Param('routeId', ParseIntPipe) routeId: number,
-    @Param('partIds', ParseIntPipe) partId: number,
   ) {
-    return this.partesTrabajoService.asignPartToRoute(routeId, partId);
+    return this.partesTrabajoService.asignPartToRoute(routeId, id);
   }
 
   @Delete(':id')

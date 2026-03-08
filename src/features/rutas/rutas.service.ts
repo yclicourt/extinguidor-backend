@@ -125,6 +125,9 @@ export class RutasService {
       orderBy: {
         date: 'asc',
       },
+      include: {
+        parts: true,
+      },
     });
   }
 

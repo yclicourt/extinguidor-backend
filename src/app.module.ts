@@ -15,6 +15,7 @@ import { UsersModule } from './features/users/users.module';
 import { VehiclesModule } from './features/vehicles/vehicles.module';
 import { FileUploadService } from './common/file-upload/file-upload.service';
 import { ConfigModule } from '@nestjs/config';
+import { ClientsModule } from './features/clients/clients.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { ConfigModule } from '@nestjs/config';
     ChekinModule,
     FacturacionModule,
     PartesTrabajoModule,
+    ClientsModule,
     ReportModule,
     RutasModule,
     UsersModule,
