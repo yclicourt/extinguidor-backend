@@ -27,23 +27,6 @@ export class RutasController {
   createRouteController(@Body() createRutaDto: CreateRutaDto) {
     return this.rutasService.createRouteItem(createRutaDto);
   }
-  /* 
-  @Get()
-  @ApiResponse({
-    status: 200,
-    description: 'The found record',
-    type: 'Route',
-  })
-  @ApiOperation({ summary: 'Get all routes' })
-  @ApiResponse({ status: 403, description: 'Forbidden.' })
-  getAllRouteController(
-    @Query('limit') limit: string = '5',
-    @Query('skip') skip: string = '0',
-  ) {
-    const limitInt = parseInt(limit);
-    const skipInt = parseInt(skip);
-    return this.rutasService.getAllRoutesItems(limitInt, skipInt);
-  } */
   @Get()
   @ApiResponse({
     status: 200,

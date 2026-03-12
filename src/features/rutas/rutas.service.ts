@@ -74,31 +74,6 @@ export class RutasService {
     });
   }
 
-  // Method to get all routes
-  /* async getAllRoutesItems(limit: number = 5, skip: number) {
-    return await this.prisma.ruta.findMany({
-      include: {
-        users: {
-          select: {
-            name: true,
-          },
-        },
-        parts: {
-          select: {
-            title: true,
-          },
-        },
-        vehicle: {
-          select: {
-            matricule: true,
-          },
-        },
-      },
-      take: limit,
-      skip: skip,
-      orderBy: { id: 'asc' },
-    });
-  } */
   async getAllRoutesItems(limit: number = 5, cursor?: string) {
     const routes = await this.prisma.ruta.findMany({
       include: {
