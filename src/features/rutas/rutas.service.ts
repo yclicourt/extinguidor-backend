@@ -75,7 +75,7 @@ export class RutasService {
   }
 
   // Method to get all routes
-  async getAllRoutesItems(limit: number = 5, skip: number) {
+  /* async getAllRoutesItems(limit: number = 5, skip: number) {
     return await this.prisma.ruta.findMany({
       include: {
         users: {
@@ -98,6 +98,38 @@ export class RutasService {
       skip: skip,
       orderBy: { id: 'asc' },
     });
+  } */
+  async getAllRoutesItems(limit: number = 5, cursor?: string) {
+    const routes = await this.prisma.ruta.findMany({
+      include: {
+        users: {
+          select: {
+            name: true,
+          },
+        },
+        parts: {
+          select: {
+            title: true,
+          },
+        },
+        vehicle: {
+          select: {
+            matricule: true,
+          },
+        },
+      },
+      take: limit,
+      skip: cursor ? 1 : 0,
+      cursor: cursor ? { id: Number(cursor) } : undefined,
+      orderBy: { id: 'asc' },
+    });
+    const lastRoutesInResults = routes[routes.length - 1];
+    const nextCursor = lastRoutesInResults ? lastRoutesInResults.id : null;
+
+    return {
+      data: routes,
+      nextCursor,
+    };
   }
 
   // Method to obtain all routes finalices

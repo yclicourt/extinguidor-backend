@@ -117,7 +117,7 @@ model Ruta {
   amount_facture_route Int
   date                 DateTime           @default(now())
   comments             String
-  state                EstadoParteTrabajo @default(PENDIENTE)
+  state                RutaState @default(PENDIENTE)
   parts                ParteTrabajo[]
   createdAt            DateTime           @default(now())
   updatedAt            DateTime           @default(now())
@@ -232,4 +232,10 @@ enum StatusChecking {
   APROBADO
   EN_PROGRESO
   PENDIENTE
+}
+
+enum RutaState {
+  PENDIENTE 
+  EN_PROGRESO
+  FINALIZADO
 }
